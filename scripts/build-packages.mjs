@@ -22,9 +22,12 @@ if (!existsSync(join(preparedRoot, 'package.json'))) {
 }
 
 run('corepack', ['pnpm', 'install', '--no-frozen-lockfile'], preparedRoot)
-run('corepack', ['pnpm', 'run', 'build:lib'], preparedRoot)
+run('corepack', ['pnpm', 'run', 'build:lib:host'], preparedRoot)
 for (const item of config.packagesToCopy) {
   run('corepack', ['pnpm', 'exec', 'tsc', '-b', join(item.target, 'tsconfig.json')], preparedRoot)
+}
+run('corepack', ['pnpm', 'run', 'build:lib:client'], preparedRoot)
+for (const item of config.packagesToCopy) {
   run('corepack', ['pnpm', '--filter', item.name, 'run', 'bundle'], preparedRoot)
 }
 
