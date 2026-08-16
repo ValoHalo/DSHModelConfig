@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { cpSync, existsSync, mkdirSync, readFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
@@ -53,6 +53,8 @@ for (const item of config.packagesToCopy) {
   const target = join(preparedRoot, item.target)
   if (!existsSync(source)) throw new Error(`plugin source was not found: ${source}`)
   cpSync(source, target, { recursive: true, errorOnExist: true })
+  // The Harness client aggregate discovers workspace tests before these packages are project references.
+  rmSync(join(target, 'tests'), { recursive: true, force: true })
 }
 for (const relativePatch of config.patches) {
   const patch = join(projectRoot, relativePatch)
