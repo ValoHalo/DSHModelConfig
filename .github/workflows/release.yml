@@ -1,0 +1,93 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to build and publish
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 24.19.0
+  PNPM_VERSION: 11.7.0
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          ref: ${{ env.RELEASE_TAG }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Validate release tag
+        id: metadata
+        shell: bash
+        run: |
+          version=$(node -p "require('./package.json').version")
+          dsh_version=$(node -p "require('./upstream/harness.json').version")
+          harness_commit=$(node -p "require('./upstream/harness.json').commit")
+          [[ "$RELEASE_TAG" == "v$version" ]] || { echo "Tag $RELEASE_TAG does not match v$version" >&2; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "dsh_version=$dsh_version" >> "$GITHUB_OUTPUT"
+          echo "harness_commit=$harness_commit" >> "$GITHUB_OUTPUT"
+      - name: Build release kits
+        run: bash scripts/package-release.sh
+      - name: Add stable asset names
+        shell: bash
+        env:
+          VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          cp "release/DSH-Plugin-Reasoning-Effort-$VERSION.zip" release/DSH-Plugin-Reasoning-Effort.zip
+          cp "release/DSH-Plugin-Model-Input-$VERSION.zip" release/DSH-Plugin-Model-Input.zip
+          cp "release/DSH-Model-Extensions-$VERSION.zip" release/DSH-Model-Extensions.zip
+      - name: Verify release assets
+        shell: bash
+        env:
+          VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          assets=(
+            "release/DSH-Plugin-Reasoning-Effort-$VERSION.zip"
+            "release/DSH-Plugin-Model-Input-$VERSION.zip"
+            "release/DSH-Model-Extensions-$VERSION.zip"
+            "release/DSH-Plugin-Reasoning-Effort.zip"
+            "release/DSH-Plugin-Model-Input.zip"
+            "release/DSH-Model-Extensions.zip"
+          )
+          for asset in "${assets[@]}"; do unzip -t "$asset"; done
+      - name: Publish GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ steps.metadata.outputs.version }}
+          DSH_VERSION: ${{ steps.metadata.outputs.dsh_version }}
+          HARNESS_COMMIT: ${{ steps.metadata.outputs.harness_commit }}
+        run: |
+          mapfile -t assets < <(find release -maxdepth 1 -type f -name '*.zip' -print | sort)
+          [[ "${#assets[@]}" -eq 6 ]] || { echo "Expected six release assets, found ${#assets[@]}" >&2; exit 1; }
+          notes="DSH Model Extensions $VERSION.
+
+          Compatible with @deepseek-ai/dsh $DSH_VERSION at Harness commit $HARNESS_COMMIT.
+          Versionless ZIP names are stable aliases used by the one-line installers."
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
+          else
+            gh release create "$RELEASE_TAG" "${assets[@]}" --verify-tag --title "DSH Model Extensions v$VERSION" --notes "$notes"
+          fi

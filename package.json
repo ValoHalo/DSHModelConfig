@@ -1,0 +1,23 @@
+{
+  "name": "dsh-model-extensions",
+  "version": "0.1.0",
+  "description": "Portable reasoning-effort and model-input extensions for DeepSeek Harness",
+  "author": "Kaffu_Alcaid",
+  "license": "MIT",
+  "homepage": "https://github.com/KaffuAlcaid/dsh-model-extensions",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KaffuAlcaid/dsh-model-extensions.git"
+  },
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "scripts": {
+    "prepare:harness": "node scripts/prepare-harness.mjs",
+    "package:win": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-release.ps1",
+    "package:linux": "bash scripts/package-release.sh"
+  }
+}

@@ -1,0 +1,16 @@
+node_modules/
+.build/
+release/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+*.code-workspace
+*.log
+.DS_Store
+Thumbs.db
+Desktop.ini
+.agents/
+.codex/
