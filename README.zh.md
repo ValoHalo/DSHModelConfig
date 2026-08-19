@@ -33,10 +33,10 @@ Linux：
 curl -fsSL https://raw.githubusercontent.com/KaffuAlcaid/dsh-model-extensions/main/install.sh | bash
 ```
 
-安装器下载最新正式 Release，把 tarball 保存到 `$DSH_HOME/plugin-cache`，再加入 DSH 的 `web` profile。安装完成后，用固定版本启动：
+安装器下载最新正式 Release，把 tarball 保存到 `$DSH_HOME/plugin-cache`，再通过 PATH 中已安装的兼容版 `dsh` 加入 `web` profile。安装完成后启动：
 
 ```powershell
-npx --yes "@deepseek-ai/dsh@0.1.0-rc.5" web
+dsh web
 ```
 
 进入 Models 设置并展开一个模型后，应能看到输入能力和思考强度区域。安装、启动与卸载必须使用同一个 `DSH_HOME`。

@@ -3,11 +3,22 @@ $ErrorActionPreference = 'Stop'
 $kitRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $manifest = Get-Content -LiteralPath (Join-Path $kitRoot 'kit.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 
-if ($null -eq (Get-Command npx -ErrorAction SilentlyContinue)) {
-  throw 'npx was not found. Install a compatible Node.js version first.'
+$dshCommand = Get-Command dsh.cmd,dsh -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($null -eq $dshCommand) {
+  throw 'dsh was not found. Install the compatible @deepseek-ai/dsh version and make sure dsh is on PATH.'
 }
 if ($null -eq (Get-Command pnpm -ErrorAction SilentlyContinue)) {
   throw 'pnpm was not found. Run "corepack enable" and try again.'
+}
+
+$dshVersionOutput = (& $dshCommand --version 2>&1 | Out-String).Trim()
+if ($LASTEXITCODE -ne 0) {
+  throw 'Unable to determine the installed DSH version.'
+}
+$expectedDshVersion = [string]$manifest.dsh.version
+$versionPattern = "(?<![0-9A-Za-z.-])v?$([Regex]::Escape($expectedDshVersion))(?![0-9A-Za-z.-])"
+if ($dshVersionOutput -notmatch $versionPattern) {
+  throw "This kit requires DSH $expectedDshVersion, but the installed command reported: $dshVersionOutput"
 }
 
 $userHome = [Environment]::GetFolderPath('UserProfile')
@@ -34,7 +45,7 @@ foreach ($package in $manifest.packages) {
   $cachedPackages += $destination
 }
 
-& npx --yes "@deepseek-ai/dsh@$($manifest.dsh.version)" plugin --profile $manifest.profile add @cachedPackages
+& $dshCommand plugin --profile $manifest.profile add @cachedPackages
 if ($LASTEXITCODE -ne 0) {
   throw "DSH plugin installation failed with exit code $LASTEXITCODE."
 }

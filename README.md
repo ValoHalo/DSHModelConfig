@@ -33,10 +33,10 @@ Linux:
 curl -fsSL https://raw.githubusercontent.com/KaffuAlcaid/dsh-model-extensions/main/install.sh | bash
 ```
 
-The bootstrap downloads the latest formal Release, retains tarballs under `$DSH_HOME/plugin-cache`, and adds them to the DSH `web` profile. Launch the pinned version afterwards:
+The bootstrap downloads the latest formal Release, retains tarballs under `$DSH_HOME/plugin-cache`, and uses the compatible `dsh` already available on PATH to add them to the `web` profile. Launch it afterwards:
 
 ```powershell
-npx --yes "@deepseek-ai/dsh@0.1.0-rc.5" web
+dsh web
 ```
 
 Expand a model in Models settings. Input Capability and Reasoning Effort sections should be present. Installation, launch, and removal must use the same `DSH_HOME`.

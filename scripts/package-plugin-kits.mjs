@@ -68,12 +68,12 @@ for (const item of project.buildPackages) {
 }
 
 function commandFor(names) {
-  return `npx --yes "@deepseek-ai/dsh@${harness.version}" plugin --profile web remove ${names.join(' ')}`
+  return `dsh plugin --profile web remove ${names.join(' ')}`
 }
 
 function launchFor(kit) {
   if (kit.desktopOnlyPlugins.length === kit.plugins.length) return undefined
-  return `npx --yes "@deepseek-ai/dsh@${harness.version}" web`
+  return 'dsh web'
 }
 
 function kitPackages(kit) {
@@ -112,7 +112,7 @@ Linux：
 bash ./install.sh
 \`\`\`
 
-需要满足 \`Node.js ${harness.node}\`，并提供 npx 与 \`${harness.packageManager}\`。安装器会先把 tarball 复制到 \`$DSH_HOME/plugin-cache\`，安装完成后可以删除解压目录。
+需要预先安装兼容版本的 DSH，并满足 \`Node.js ${harness.node}\` 与 \`${harness.packageManager}\`。安装器会直接调用 PATH 中的 \`dsh\`，并先把 tarball 复制到 \`$DSH_HOME/plugin-cache\`；安装完成后可以删除解压目录。
 
 当前 DSH UO 已通过现有内置实现提供同等功能。请勿把本独立套件安装到桌面版的 \`dsh-home\`；本仓库不会改变 DSH UO 的构建或启动方式。
 
@@ -172,7 +172,7 @@ Linux:
 bash ./install.sh
 \`\`\`
 
-Requires \`Node.js ${harness.node}\`, npx, and \`${harness.packageManager}\`. The installer copies tarballs into \`$DSH_HOME/plugin-cache\` before installation, so the extracted directory may be deleted afterwards.
+Requires a compatible DSH installation, \`Node.js ${harness.node}\`, and \`${harness.packageManager}\`. The installer calls \`dsh\` from PATH and copies tarballs into \`$DSH_HOME/plugin-cache\` before installation, so the extracted directory may be deleted afterwards.
 
 Current DSH UO releases already include equivalent features through their existing bundled implementation. Do not install this standalone kit into the desktop application's \`dsh-home\`; this repository does not change the DSH UO build or startup path.
 
