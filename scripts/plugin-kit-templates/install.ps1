@@ -35,6 +35,7 @@ if ([string]::IsNullOrWhiteSpace($env:DSH_HOME)) {
 $cacheRoot = Join-Path $dshHome "plugin-cache\$($manifest.artifact)\$($manifest.version)"
 New-Item -ItemType Directory -Path $cacheRoot -Force | Out-Null
 $cachedPackages = @()
+$packageNames = @()
 foreach ($package in $manifest.packages) {
   $source = Join-Path $kitRoot $package.file
   if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
@@ -43,6 +44,25 @@ foreach ($package in $manifest.packages) {
   $destination = Join-Path $cacheRoot $package.file
   Copy-Item -LiteralPath $source -Destination $destination -Force
   $cachedPackages += $destination
+  $packageNames += [string]$package.name
+}
+
+$profileManifestPath = Join-Path $dshHome "profiles\$($manifest.profile)\package.json"
+$installedPackages = @()
+if (Test-Path -LiteralPath $profileManifestPath -PathType Leaf) {
+  $profileManifest = Get-Content -LiteralPath $profileManifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
+  $dependencies = $profileManifest.dependencies
+  foreach ($packageName in $packageNames) {
+    if ($null -ne $dependencies -and $null -ne $dependencies.PSObject.Properties[$packageName]) {
+      $installedPackages += $packageName
+    }
+  }
+}
+if ($installedPackages.Count -gt 0) {
+  & $dshCommand plugin --profile $manifest.profile remove @installedPackages
+  if ($LASTEXITCODE -ne 0) {
+    throw "Unable to replace installed plugin packages (exit code $LASTEXITCODE)."
+  }
 }
 
 & $dshCommand plugin --profile $manifest.profile add @cachedPackages

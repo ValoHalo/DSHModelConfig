@@ -1,91 +1,40 @@
 {
   "schemaVersion": 1,
-  "repository": "https://github.com/KaffuAlcaid/dsh-model-extensions",
+  "repository": "https://github.com/ValoHalo/DSHModelConfig",
   "packagesToCopy": [
     {
-      "source": "packages/reasoning-effort",
-      "target": "packages/client/ui-dsh-uo-reasoning-effort",
-      "name": "@dsh-uo/client-ui-reasoning-effort"
-    },
+      "source": "packages/model-config",
+      "target": "packages/client/ui-dsh-model-config",
+      "name": "dsh-model-config"
+    }
+  ],
+  "sourceCopies": [
     {
-      "source": "packages/model-input",
-      "target": "packages/client/ui-dsh-uo-model-input",
-      "name": "@dsh-uo/client-ui-model-input"
+      "source": "packages/client/ui-settings-models/src",
+      "target": "packages/client/ui-dsh-model-config/src/host-models"
     }
   ],
   "patches": [
-    "patches/0001-model-settings-host.patch",
-    "patches/0002-pi-ai-developer-role.patch"
+    "patches/0001-inline-model-capability-slot.patch"
   ],
   "buildPackages": [
     {
-      "name": "@deepseek-ai/dsh-client-ui-settings-models",
-      "directory": "packages/client/ui-settings-models",
-      "role": "Models host adapter"
-    },
-    {
-      "name": "@deepseek-ai/dsh-llm-pi-ai",
-      "directory": "packages/llm/llm-pi-ai",
-      "role": "pi-ai host adapter"
-    },
-    {
-      "name": "@dsh-uo/client-ui-reasoning-effort",
-      "directory": "packages/client/ui-dsh-uo-reasoning-effort",
-      "role": "reasoning effort plugin"
-    },
-    {
-      "name": "@dsh-uo/client-ui-model-input",
-      "directory": "packages/client/ui-dsh-uo-model-input",
-      "role": "model input plugin"
+      "name": "dsh-model-config",
+      "directory": "packages/client/ui-dsh-model-config",
+      "role": "slot-enabled Models page and inline capability controls"
     }
   ],
   "kits": [
-    {
-      "id": "reasoning-effort",
-      "artifact": "DSH-Plugin-Reasoning-Effort",
-      "title": "DSH Reasoning Effort",
-      "titleZh": "DSH 思考强度插件",
-      "summary": "Adds per-model reasoning presets, custom effort mappings, and system-prompt role selection.",
-      "summaryZh": "为模型设置增加思考强度预设、自定义档位映射和系统提示词角色选择。",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-settings-models",
-        "@deepseek-ai/dsh-llm-pi-ai",
-        "@dsh-uo/client-ui-reasoning-effort"
-      ],
-      "plugins": ["@dsh-uo/client-ui-reasoning-effort"],
-      "shared": ["@deepseek-ai/dsh-client-ui-settings-models", "@deepseek-ai/dsh-llm-pi-ai"],
-      "desktopOnlyPlugins": []
-    },
-    {
-      "id": "model-input",
-      "artifact": "DSH-Plugin-Model-Input",
-      "title": "DSH Model Input",
-      "titleZh": "DSH 模型输入能力插件",
-      "summary": "Adds per-model text and image input declarations to Models settings.",
-      "summaryZh": "为模型设置增加仅文本、文本与图片以及自动输入能力声明。",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-settings-models",
-        "@dsh-uo/client-ui-model-input"
-      ],
-      "plugins": ["@dsh-uo/client-ui-model-input"],
-      "shared": ["@deepseek-ai/dsh-client-ui-settings-models"],
-      "desktopOnlyPlugins": []
-    },
     {
       "id": "all",
       "artifact": "DSH-Model-Extensions",
       "title": "DSH Model Extensions",
       "titleZh": "DSH 模型扩展合集",
-      "summary": "Installs both model extensions and their shared host adapters.",
-      "summaryZh": "安装思考强度、模型输入能力及其共用宿主适配包。",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-settings-models",
-        "@deepseek-ai/dsh-llm-pi-ai",
-        "@dsh-uo/client-ui-reasoning-effort",
-        "@dsh-uo/client-ui-model-input"
-      ],
-      "plugins": ["@dsh-uo/client-ui-reasoning-effort", "@dsh-uo/client-ui-model-input"],
-      "shared": ["@deepseek-ai/dsh-client-ui-settings-models", "@deepseek-ai/dsh-llm-pi-ai"],
+      "summary": "Adds reasoning and input controls inside the stock DSH Models page.",
+      "summaryZh": "在官方 DSH 的模型页面内加入思考强度和输入能力编辑器。",
+      "packages": ["dsh-model-config"],
+      "plugins": ["dsh-model-config"],
+      "shared": [],
       "desktopOnlyPlugins": []
     }
   ]

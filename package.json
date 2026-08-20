@@ -1,13 +1,13 @@
 {
   "name": "dsh-model-extensions",
-  "version": "0.1.0",
-  "description": "Portable reasoning-effort and model-input extensions for DeepSeek Harness",
+  "version": "0.2.0",
+  "description": "Installable model capability settings plugin for stock DeepSeek Harness",
   "author": "Kaffu_Alcaid",
   "license": "MIT",
-  "homepage": "https://github.com/KaffuAlcaid/dsh-model-extensions",
+  "homepage": "https://github.com/ValoHalo/DSHModelConfig",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/KaffuAlcaid/dsh-model-extensions.git"
+    "url": "git+https://github.com/ValoHalo/DSHModelConfig.git"
   },
   "private": true,
   "type": "module",

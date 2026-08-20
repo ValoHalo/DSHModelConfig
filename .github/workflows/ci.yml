@@ -23,8 +23,29 @@ jobs:
         run: |
           node --check scripts/prepare-harness.mjs
           node --check scripts/build-packages.mjs
+          node --check scripts/generate-model-capacity-defaults.mjs
           node --check scripts/package-plugin-kits.mjs
-          node -e "for (const file of ['package.json', 'plugin-project.json', 'upstream/harness.json']) JSON.parse(require('node:fs').readFileSync(file, 'utf8'))"
+          node -e "for (const file of ['package.json', 'packages/model-config/package.json', 'plugin-project.json', 'upstream/harness.json']) JSON.parse(require('node:fs').readFileSync(file, 'utf8'))"
           bash -n install.sh scripts/package-release.sh scripts/plugin-kit-templates/install.sh
-      - name: Check pinned Harness patches
-        run: node scripts/prepare-harness.mjs
+      - name: Build and test release artifacts
+        run: bash scripts/package-release.sh
+      - name: Verify npm package contents
+        shell: bash
+        run: |
+          tarball=$(find .build/tarballs -maxdepth 1 -type f -name '*.tgz' -print -quit)
+          [[ -n "$tarball" ]] || { echo "npm tarball was not created" >&2; exit 1; }
+          mapfile -t entries < <(tar -tzf "$tarball")
+          printf '%s\n' "${entries[@]}" | grep -Fxq 'package/THIRD_PARTY_NOTICES.md'
+          if printf '%s\n' "${entries[@]}" | grep -q '^package/src/'; then
+            echo "npm tarball unexpectedly contains package/src" >&2
+            exit 1
+          fi
+      - name: Upload verification artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dsh-model-config-${{ github.sha }}
+          path: |
+            .build/tarballs/*.tgz
+            release/*.zip
+          if-no-files-found: error
+          retention-days: 7

@@ -5,6 +5,7 @@ release/
 .env
 .env.*
 !.env.example
+.npmrc
 .idea/
 .vscode/
 *.code-workspace
@@ -14,3 +15,7 @@ Thumbs.db
 Desktop.ini
 .agents/
 .codex/
+.dsh-test/
+.pnpm-store/
+pnpm-lock.yaml
+coverage/

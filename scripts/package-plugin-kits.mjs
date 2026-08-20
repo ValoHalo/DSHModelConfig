@@ -61,6 +61,9 @@ for (const item of project.buildPackages) {
   if (manifest.name !== item.name || typeof manifest.version !== 'string') {
     throw new Error(`package identity does not match plugin-project.json: ${manifestPath}`)
   }
+  if (manifest.version !== app.version) {
+    throw new Error(`package version ${manifest.version} does not match release version ${app.version}: ${manifestPath}`)
+  }
   const file = tarballName(manifest.name, manifest.version)
   const source = join(tarballRoot, file)
   if (!existsSync(source)) throw new Error(`packed package was not found: ${source}`)
@@ -93,6 +96,15 @@ function readmeZh(kit, selected) {
     ? '请正常启动兼容 Electron 宿主。宿主必须使用本套件指定的 DSH 版本和安装时的同一个 `DSH_HOME`。'
     : `\`\`\`powershell\n${launch}\n\`\`\``
   const list = selected.map(item => `- \`${item.name}\`：${item.role}`).join('\n')
+  const sharedRemoval = kit.shared.length === 0
+    ? ''
+    : `
+确认没有其他相关插件后，再移除组合包直接安装的功能依赖：
+
+\`\`\`powershell
+${commandFor(kit.shared)}
+\`\`\`
+`
   return `# ${kit.titleZh}
 
 ${kit.summaryZh}
@@ -124,23 +136,18 @@ ${launchBlock}
 
 ## 卸载
 
-先移除功能插件：
+移除插件：
 
 \`\`\`powershell
 ${commandFor(kit.plugins)}
 \`\`\`
-
-确认没有其他相关插件后，再移除共用宿主适配包：
-
-\`\`\`powershell
-${commandFor(kit.shared)}
-\`\`\`
+${sharedRemoval}
 
 ## 包内容
 
 ${list}
 
-本项目为非官方扩展，与 DeepSeek 无隶属关系。扩展代码按 MIT License 分发；Harness 派生包保留上游许可与版权声明。
+本项目为非官方扩展，与 DeepSeek 无隶属关系。扩展代码按 MIT License 分发；内联的 DeepSeek Harness 源码声明见 THIRD_PARTY_NOTICES.md。
 `
 }
 
@@ -153,6 +160,15 @@ function readmeEn(kit, selected) {
     ? 'Start the compatible Electron host normally. It must use this kit\'s DSH version and the same `DSH_HOME` used during installation.'
     : `\`\`\`powershell\n${launch}\n\`\`\``
   const list = selected.map(item => `- \`${item.name}\`: ${item.role}`).join('\n')
+  const sharedRemoval = kit.shared.length === 0
+    ? ''
+    : `
+After every related plugin has been removed, remove the feature dependencies installed directly by this kit:
+
+\`\`\`powershell
+${commandFor(kit.shared)}
+\`\`\`
+`
   return `# ${kit.title}
 
 ${kit.summary}
@@ -184,23 +200,18 @@ Installation, launch, and removal must use the same \`DSH_HOME\`. Use a new \`DS
 
 ## Uninstall
 
-Remove the feature plugins first:
+Remove the plugin:
 
 \`\`\`powershell
 ${commandFor(kit.plugins)}
 \`\`\`
-
-After every related plugin has been removed, remove the shared host adapters:
-
-\`\`\`powershell
-${commandFor(kit.shared)}
-\`\`\`
+${sharedRemoval}
 
 ## Contents
 
 ${list}
 
-This is an unofficial extension project with no affiliation with DeepSeek. Extension code is distributed under the MIT License; Harness-derived packages retain upstream licenses and notices.
+This is an unofficial extension project with no affiliation with DeepSeek. Extension code is distributed under the MIT License; notices for inlined DeepSeek Harness source are in THIRD_PARTY_NOTICES.md.
 `
 }
 
@@ -213,6 +224,7 @@ for (const kit of project.kits) {
   mkdirSync(kitRoot, { recursive: true })
   for (const item of selected) copyFileSync(item.source, join(kitRoot, item.file))
   copyFileSync(join(projectRoot, 'LICENSE'), join(kitRoot, 'LICENSE'))
+  copyFileSync(join(projectRoot, 'THIRD_PARTY_NOTICES.md'), join(kitRoot, 'THIRD_PARTY_NOTICES.md'))
   copyFileSync(join(templateRoot, 'install.ps1'), join(kitRoot, 'install.ps1'))
   copyFileSync(join(templateRoot, 'install.sh'), join(kitRoot, 'install.sh'))
   chmodSync(join(kitRoot, 'install.sh'), 0o755)

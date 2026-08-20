@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repository=https://github.com/KaffuAlcaid/dsh-model-extensions
+repository=https://github.com/ValoHalo/DSHModelConfig
 asset=DSH-Model-Extensions.zip
 temporary_root=$(mktemp -d)
 trap 'rm -rf -- "$temporary_root"' EXIT

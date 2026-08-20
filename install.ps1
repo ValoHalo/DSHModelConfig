@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 
-$repository = 'https://github.com/KaffuAlcaid/dsh-model-extensions'
+$repository = 'https://github.com/ValoHalo/DSHModelConfig'
 $asset = 'DSH-Model-Extensions.zip'
 $temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) "dsh-model-extensions-$([Guid]::NewGuid().ToString('N'))"
 $archive = Join-Path $temporaryRoot $asset

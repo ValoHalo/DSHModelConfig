@@ -1,0 +1,157 @@
+diff --git a/packages/client/ui-dsh-model-config/src/host-models/client/ModelListEditor.tsx b/packages/client/ui-dsh-model-config/src/host-models/client/ModelListEditor.tsx
+--- a/packages/client/ui-dsh-model-config/src/host-models/client/ModelListEditor.tsx
++++ b/packages/client/ui-dsh-model-config/src/host-models/client/ModelListEditor.tsx
+@@ -12,7 +12,7 @@
+  * rows the user can still fill in by hand.
+  */
+ 
+-import { useState } from 'react'
++import { useContext, useRef, useState } from 'react'
+ import type { ReactNode } from 'react'
+ import type { DiscoveredModelView, IApiClient } from '@deepseek-ai/dsh-api-remotes/client'
+ import { Button, Modal } from '@deepseek-ai/dsh-client-ui-primitives'
+@@ -22,6 +22,8 @@ import { formatCapacity, parseCapacity } from './DeepSeekModelsEditor.tsx'
+ import type { DeepSeekModelDraft } from './DeepSeekModelsEditor.tsx'
+ import { messageOf } from './store.ts'
+ import type { en } from './locales.ts'
++import { ModelCapabilitySlotContext } from '../../client/model-capability-slot.ts'
++import { withModelCapacityDefaults } from '../../client/model-capacity-defaults.ts'
+ import styles from './ModelsSection.module.css'
+ 
+ /**
+@@ -143,14 +145,14 @@ function capacitySpelling(value: number | undefined): string {
+   return value === undefined ? '' : formatCapacity(value)
+ }
+ 
+-/** Adopt a candidate, keeping whatever capacities the provider disclosed. */
++/** Adopt a candidate, filling capacities from same-id catalog data or route fallbacks. */
+ function adopt(candidate: DiscoveredModelView): ModelDraft {
+-  return {
++  return withModelCapacityDefaults({
+     id: candidate.id,
+     ...candidate.name === undefined ? {} : { name: candidate.name },
+     ...candidate.contextWindow === undefined ? {} : { contextWindow: candidate.contextWindow },
+     ...candidate.maxTokens === undefined ? {} : { maxTokens: candidate.maxTokens },
+-  }
++  })
+ }
+ 
+ /**
+@@ -165,5 +167,21 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
+   const [candidates, setCandidates] = useState<readonly DiscoveredModelView[] | undefined>(undefined)
+   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set())
++  const renderModelCapability = useContext(ModelCapabilitySlotContext)
++  const rowKeys = useRef(new WeakMap<ModelDraft, number>())
++  const nextRowKey = useRef(0)
++
++  const rowKey = (model: ModelDraft): number => {
++    const existing = rowKeys.current.get(model)
++    if (existing !== undefined) return existing
++    const created = nextRowKey.current++
++    rowKeys.current.set(model, created)
++    return created
++  }
++
++  const inheritRowKey = (previous: ModelDraft, next: ModelDraft): ModelDraft => {
++    rowKeys.current.set(next, rowKey(previous))
++    return next
++  }
+   // Rows carry an id and a name; capacities are the exception, so they stay
+   // folded until asked for rather than crowding every row with four inputs.
+   const [expanded, setExpanded] = useState<ReadonlySet<number>>(new Set())
+@@ -225,8 +243,8 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
+       const cleared = new Set(
+         Object.entries(next).filter(([, value]) => value === undefined || value === '').map(([key]) => key),
+       )
+-      return Object.fromEntries(
++      return inheritRowKey(model, Object.fromEntries(
+         Object.entries({ ...model, ...next }).filter(([key]) => !cleared.has(key)),
+-      )
++      ))
+     }))
+   }
+@@ -335,7 +353,7 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
+       </div>
+       {models.length === 0 ? <p className={styles['modelEmpty']}>{t('modelsEmpty')}</p> : null}
+       {models.map((model, index) => (
+-        <div key={index} className={styles['modelEntry']}>
++        <div key={rowKey(model)} className={styles['modelEntry']}>
+           <div className={styles['modelRow']}>
+             <input
+               className={styles['input']}
+@@ -417,6 +435,20 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
+                     onChange={(event) => { editCapacity(index, 'maxTokens', event.target.value) }}
+                   />
+                 </label>
++                {renderModelCapability === undefined
++                  ? null
++                  : (
++                    <div className={styles['modelCapabilities']}>
++                      {renderModelCapability({
++                        model,
++                        position: index + 1,
++                        ...probe.api === undefined ? {} : { protocol: probe.api },
++                        disabled,
++                        onChange: next => onChange(models.map((entry, at) =>
++                          at === index ? inheritRowKey(entry, next) : entry)),
++                      })}
++                    </div>
++                  )}
+               </div>
+             )
+             : null}
+diff --git a/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.module.css b/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.module.css
+--- a/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.module.css
++++ b/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.module.css
+@@ -506,6 +506,11 @@
+   padding: 8px 4px 2px;
+ }
+ 
++.modelCapabilities {
++  grid-column: 1 / -1;
++  min-width: 0;
++}
++
+ .modelField {
+   display: flex;
+   flex-direction: column;
+diff --git a/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.tsx b/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.tsx
+--- a/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.tsx
++++ b/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.tsx
+@@ -17,9 +17,11 @@ import type { ReactNode } from 'react'
+ import type { IApiClient } from '@deepseek-ai/dsh-api-remotes/client'
+ import { Button, IconPlusOutline16, Modal } from '@deepseek-ai/dsh-client-ui-primitives'
+ import type { SnapshotSelectorHook } from '@deepseek-ai/dsh-client-web-react'
++import type { PropsRenderSlots } from '@deepseek-ai/dsh-client-ui-slots'
+ import { CustomProviderCard } from './CustomProviderCard.tsx'
+ import { deriveKeyRef, messageOf, protocolChoices, providerUsable } from './store.ts'
+ import type { ModelsSettingsState, ModelsSettingsStore, ProviderRow } from './store.ts'
+ import { ProviderEditor, type ProviderEditorProps } from './ProviderEditor.tsx'
+ import type { en } from './locales.ts'
++import { MODEL_CAPABILITY_SLOT, ModelCapabilitySlotContext } from '../../client/model-capability-slot.ts'
+ import styles from './ModelsSection.module.css'
+@@ -39,6 +41,8 @@
+ /**
+  * Props delivered by the slot outlet: the inject face spread flat (the
+  * renderer erases the share boundary at the render call).
+  */
+-export type ModelsSectionProps = Partial<ModelsSectionInjected>
++export type ModelsSectionProps = Partial<ModelsSectionInjected> & {
++  renderSlot?: unknown
++}
+ 
+@@ -171,5 +175,11 @@
+ export function ModelsSection(props: ModelsSectionProps): ReactNode {
+-  const { controller, useSnapshot, api, t } = props
+-  if (controller === undefined || useSnapshot === undefined || api === undefined || t === undefined) return null
+-  return <Loaded injected={{ controller, useSnapshot, api, t }} />
++  const { controller, useSnapshot, api, t } = props
++  const renderSlot = props.renderSlot as PropsRenderSlots<typeof MODEL_CAPABILITY_SLOT>['renderSlot'] | undefined
++  if (controller === undefined || useSnapshot === undefined || api === undefined || t === undefined
++    || renderSlot === undefined) return null
++  return (
++    <ModelCapabilitySlotContext.Provider value={owner => renderSlot(MODEL_CAPABILITY_SLOT, owner)}>
++      <Loaded injected={{ controller, useSnapshot, api, t }} />
++    </ModelCapabilitySlotContext.Provider>
++  )
+ }

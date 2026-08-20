@@ -2,69 +2,70 @@
 
 English | [简体中文](README.zh.md)
 
-Two portable extensions for the DeepSeek Harness Models settings page: reasoning effort and model input capabilities. Release kits contain each plugin and its pinned host adapters for the matching stock DSH Web version. DSH UO already contains equivalent features through its existing bundled implementation; this repository does not change the desktop application's build or startup path.
+An installable model-capability plugin for stock DeepSeek Harness Web. Once installed, it takes over the existing Models section and adds input and reasoning controls inside each expanded pi-ai model row. Uninstalling restores the stock page. The page implementation and both editors ship in one npm package.
 
-This is an unofficial project with no affiliation with DeepSeek. Both this project and upstream Harness are preview software; only the pinned version below is supported.
+This is an unofficial project with no affiliation with DeepSeek. DSH is preview software; this project supports only the pinned version below.
 
 ## Compatibility
 
 | Component | Supported range |
 | --- | --- |
-| DSH | `@deepseek-ai/dsh 0.1.0-rc.5` |
-| Harness source | `47f943859bef60e4160492346772ded9b24f765a` |
+| DSH | `@deepseek-ai/dsh 0.1.0-rc.7` |
+| Harness source | `99f6f02fecdb7dff40c3fbc9470f5907c29f74ca` |
 | Node.js | `^22.19.0 || >=24.0.0` |
 | Profile | `web` |
-| Stock DSH Web | Reasoning effort and model input are supported |
-| DSH UO | Equivalent features are already included; do not install these standalone kits into its `dsh-home` |
+| Stock DSH Web | Supported |
+| DSH UO | Equivalent functionality is bundled; do not install it again |
 
-## Quick Install
+## Install
 
-Install both extensions and their host adapters.
+After the package is published to npm, install through the official plugin command:
+
+```powershell
+dsh plugin --profile web add dsh-model-config@0.2.0
+dsh web
+```
+
+Before npm publication, use the GitHub Release installer.
 
 Windows PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/KaffuAlcaid/dsh-model-extensions/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/ValoHalo/DSHModelConfig/main/install.ps1 | iex
 ```
 
 Linux:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/KaffuAlcaid/dsh-model-extensions/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ValoHalo/DSHModelConfig/main/install.sh | bash
 ```
 
-The bootstrap downloads the latest formal Release, retains tarballs under `$DSH_HOME/plugin-cache`, and uses the compatible `dsh` already available on PATH to add them to the `web` profile. Launch it afterwards:
+Open Settings → Models, then expand a provider editor and one of its model rows. The controls affect only pi-ai models already declared on that page; providers that still use the stock catalog remain untouched.
+
+Uninstall the npm bundle with:
 
 ```powershell
-dsh web
+dsh plugin --profile web remove dsh-model-config
 ```
 
-Expand a model in Models settings. Input Capability and Reasoning Effort sections should be present. Installation, launch, and removal must use the same `DSH_HOME`.
+## Features
 
-## Individual Kits
+- Reasoning effort: manual OpenAI, Anthropic, xAI, Kimi, GLM, and DeepSeek presets, custom effort maps, and thinking request formats.
+- Model input: automatic, text-only, and text-and-image declarations.
+- Custom-provider model capacities: fetched models adopt consistent same-ID context-window and max-output values from the pinned DSH catalog; missing or ambiguous matches fall back to `262144` and `32768`, while existing manually edited rows remain unchanged.
+- Persistence: capability fields join the stock Models form draft and are saved by the same Apply action through the official settings mutation and namespace revision.
+- Stored fields: only stock `input`, `reasoningEfforts`, `compat.thinkingFormat`, and `compat.supportsReasoningEffort` fields.
 
-Download and extract the required file from [Releases](https://github.com/KaffuAlcaid/dsh-model-extensions/releases):
+Stock rc.7 does not expose `compat.supportsDeveloperRole`, so the pure plugin does not offer Developer/System prompt-role selection.
 
-| File | Contents |
-| --- | --- |
-| `DSH-Plugin-Reasoning-Effort.zip` | Reasoning plugin, Models adapter, and pi-ai adapter |
-| `DSH-Plugin-Model-Input.zip` | Model-input plugin and Models adapter |
-| `DSH-Model-Extensions.zip` | Both plugins and every host adapter |
+## Architecture
 
-Run `install.ps1` or `install.sh` from the extracted kit. Each kit README contains its exact removal commands and package inventory.
+`dsh-model-config` is the only published package and user-facing install entry. Its build inlines the Models page from the pinned Harness commit and adds a model-row child slot. At runtime, the plugin registers that page in the existing `models` cell at a lower priority and contributes both editors through the child slot. Installation does not modify global DSH files; uninstalling exposes the stock Models entry again.
 
-## Scope
+## Development and release
 
-- Reasoning Effort: provider presets, custom effort maps, thinking format, and Developer/System prompt roles.
-- Model Input: automatic, text-only, and text-and-image declarations.
-- Stored configuration: existing Harness and pi-ai fields only; no plugin-specific preset identifiers.
-
-Each plugin supplies its own `cordis.patch.yml` profile layer. Models and pi-ai adaptations remain reviewable source patches, while Releases contain built tarballs so ordinary users do not need a Harness checkout. See [Patch Design](docs/patches.md).
-
-## Development
-
-The build fetches the pinned official Harness commit, copies both plugins, applies the patches, and produces three ZIP files. See [Building and Releasing](docs/building.md).
+The build fetches a pinned stock Harness commit, copies the single extension package into its client workspace, uses the official client bundle preset, and produces one Release ZIP. See [Building and Releasing](docs/building.md).
 
 ## License
 
-Extension source is distributed under the [MIT License](LICENSE). Adapter packages built from Harness retain upstream licenses and notices.
+Extension source is distributed under the [MIT License](LICENSE). The release bundle also includes code derived from DeepSeek Harness; see [Third-Party Notices](THIRD_PARTY_NOTICES.md).
