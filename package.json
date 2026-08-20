@@ -1,6 +1,6 @@
 {
   "name": "dsh-model-extensions",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Installable model capability settings plugin for stock DeepSeek Harness",
   "author": "Kaffu_Alcaid",
   "license": "MIT",
