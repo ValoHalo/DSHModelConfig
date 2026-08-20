@@ -3,7 +3,6 @@ import type { ConnectionHandle } from '@deepseek-ai/dsh-api-remotes/client'
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
-import { bindSnapshotSelector } from '@deepseek-ai/dsh-client-web-react'
 import { ModelCapabilityFields } from './ModelCapabilityFields.tsx'
 import type { ModelCapabilityFieldsInjected } from './ModelCapabilityFields.tsx'
 import {
@@ -19,6 +18,7 @@ import {
 import { ModelsSection } from '../host-models/client/ModelsSection.tsx'
 import type { ModelsSectionInjected } from '../host-models/client/ModelsSection.tsx'
 import { ModelsSettingsStore } from '../host-models/client/store.ts'
+import { createSettingsSchemaOperations } from '../host-models/client/schema-operations.ts'
 import {
   en as modelsEn, zh as modelsZh, type ModelsKey,
 } from '../host-models/client/locales.ts'
@@ -36,7 +36,7 @@ const INPUT_NS = 'dsh-model-config.model-input'
 const REASONING_NS = 'dsh-model-config.reasoning-effort'
 
 /** Services used by the shadow Models page and its nested capability slot. */
-export const inject = ['slots', 'locale', 'connection', 'remote']
+export const inject = ['slots', 'locale', 'connection', 'remote', 'settingsScope', 'settingsSchema']
 
 /** Refetch only after the integrated Models page has been opened once. */
 function refreshIfLoaded(controller: ModelsSettingsStore): void {
@@ -66,13 +66,14 @@ export function apply(ctx: ClientContext): void {
   }, 'dsh-model-config: project shadowed settings navigation')
 
   const connection = ctx.get('connection') as ConnectionHandle
-  const controller = new ModelsSettingsStore(connection.api)
-  const useSnapshot = bindSnapshotSelector(controller.store)
+  const schema = createSettingsSchemaOperations(ctx.settingsSchema)
+  const controller = new ModelsSettingsStore(connection.api, schema, ctx.settingsScope.describe())
   const t = ctx.locale.bind(MODELS_NS) as ModelsSectionInjected['t']
   const injected = (): ModelsSectionInjected => ({
     controller,
-    useSnapshot,
+    hooks: { snapshot: controller.store },
     api: connection.api,
+    schema,
     t,
   })
 

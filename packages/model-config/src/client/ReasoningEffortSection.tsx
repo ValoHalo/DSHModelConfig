@@ -12,8 +12,9 @@ type ReasoningLevel = typeof REASONING_LEVELS[number]
 type ReasoningEfforts = Partial<Record<ReasoningLevel, string | null>>
 type ReasoningMode = 'preset' | 'custom'
 type ReasoningPresetId = 'openai' | 'anthropic' | 'xai' | 'kimi' | 'glm' | 'deepseek'
+type PromptRoleMode = 'automatic' | 'developer' | 'system'
 type ThinkingFormat = 'openai' | 'deepseek' | 'openrouter' | 'together' | 'zai' | 'qwen'
-| 'string-thinking' | 'ant-ling'
+| 'chat-template' | 'qwen-chat-template' | 'string-thinking' | 'ant-ling'
 
 interface ReasoningPreset {
   label: ReasoningEffortKey
@@ -59,8 +60,13 @@ export const REASONING_PRESETS: Readonly<Record<ReasoningPresetId, ReasoningPres
 
 const REASONING_PRESET_IDS = Object.keys(REASONING_PRESETS) as ReasoningPresetId[]
 const THINKING_FORMATS: readonly ThinkingFormat[] = [
-  'openai', 'deepseek', 'openrouter', 'together', 'zai', 'qwen', 'string-thinking', 'ant-ling',
+  'openai', 'deepseek', 'openrouter', 'together', 'zai', 'qwen', 'chat-template',
+  'qwen-chat-template', 'string-thinking', 'ant-ling',
 ]
+
+const OPENAI_RESPONSES_PROTOCOLS = new Set([
+  'openai-responses', 'azure-openai-responses', 'openai-codex-responses',
+])
 
 export interface ReasoningEffortSectionProps {
   model: Readonly<Record<string, unknown>>
@@ -110,9 +116,28 @@ function formatSupportsEffort(format: ThinkingFormat): boolean | undefined {
   return ['openai', 'deepseek', 'together', 'zai'].includes(format) ? true : undefined
 }
 
+function promptRoleOf(model: Readonly<Record<string, unknown>>): PromptRoleMode {
+  const value = compatOf(model)['supportsDeveloperRole']
+  return value === true ? 'developer' : value === false ? 'system' : 'automatic'
+}
+
+/** Replace only the prompt-role compatibility switch while preserving other model fields. */
+export function withPromptRole(
+  model: Readonly<Record<string, unknown>>,
+  role: PromptRoleMode,
+): Record<string, unknown> {
+  const next = { ...model }
+  const compat = compatOf(model)
+  if (role === 'automatic') Reflect.deleteProperty(compat, 'supportsDeveloperRole')
+  else compat['supportsDeveloperRole'] = role === 'developer'
+  if (Object.keys(compat).length === 0) Reflect.deleteProperty(next, 'compat')
+  else next['compat'] = compat
+  return next
+}
+
 /** Return the request field controlled by the active protocol and dialect. */
 export function requestField(protocol: string | undefined, format: ThinkingFormat): string {
-  if (protocol === 'openai-responses') return 'reasoning.effort'
+  if (protocol !== undefined && OPENAI_RESPONSES_PROTOCOLS.has(protocol)) return 'reasoning.effort'
   if (protocol === 'anthropic-messages') return 'output_config.effort / thinking.budget_tokens'
   if (protocol !== 'openai-completions') return 'provider protocol'
   switch (format) {
@@ -122,6 +147,8 @@ export function requestField(protocol: string | undefined, format: ThinkingForma
     case 'ant-ling': return 'reasoning.effort'
     case 'together': return 'reasoning.enabled + reasoning_effort'
     case 'qwen': return 'enable_thinking'
+    case 'chat-template':
+    case 'qwen-chat-template': return 'chat_template_kwargs'
     case 'string-thinking': return 'thinking'
     case 'openai': return 'reasoning_effort'
   }
@@ -170,6 +197,9 @@ export function ReasoningEffortSection(props: ReasoningEffortSectionProps): Reac
   const activeEfforts: ReasoningEfforts = efforts !== undefined && efforts !== false ? efforts : {}
   const activeLevels = REASONING_LEVELS.filter(level => Object.hasOwn(activeEfforts, level))
   const remainingLevels = REASONING_LEVELS.filter(level => !Object.hasOwn(activeEfforts, level))
+  const promptRole = promptRoleOf(model)
+  const supportsPromptRole = protocol === 'openai-completions'
+    || protocol !== undefined && OPENAI_RESPONSES_PROTOCOLS.has(protocol)
 
   const applyPreset = (id: ReasoningPresetId): void => {
     const preset = REASONING_PRESETS[id]
@@ -222,6 +252,27 @@ export function ReasoningEffortSection(props: ReasoningEffortSectionProps): Reac
                   </label>
                 </div>
               </div>
+
+              {supportsPromptRole
+                ? (
+                  <label className={css.modelField}>
+                    <span className={css.modelFieldLabel}>{t('promptRole')}</span>
+                    <select
+                      className={`${css.input} ${css.selectInput}`}
+                      value={promptRole}
+                      aria-label={`${t('promptRole')} ${props.position}`}
+                      disabled={disabled}
+                      onChange={(event) => {
+                        props.onChange(withPromptRole(model, event.target.value as PromptRoleMode))
+                      }}
+                    >
+                      <option value="automatic">{t('promptRoleAutomatic')}</option>
+                      <option value="developer">{t('promptRoleDeveloper')}</option>
+                      <option value="system">{t('promptRoleSystem')}</option>
+                    </select>
+                  </label>
+                )
+                : null}
 
               {enabled
                 ? (

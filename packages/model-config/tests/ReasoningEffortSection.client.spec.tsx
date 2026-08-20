@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
-  ReasoningEffortSection, REASONING_PRESETS, requestField, withReasoning,
+  ReasoningEffortSection, REASONING_PRESETS, requestField, withPromptRole, withReasoning,
 } from '../src/client/ReasoningEffortSection.tsx'
 import type { ReasoningEffortSectionProps } from '../src/client/ReasoningEffortSection.tsx'
 import { en } from '../src/client/reasoning-effort-locales.ts'
@@ -51,7 +51,7 @@ describe('ReasoningEffortSection', () => {
     expect(screen.getByLabelText<HTMLInputElement>(`${en.value} high 1`).readOnly).toBe(true)
     expect(screen.getByLabelText<HTMLInputElement>(`${en.requestField} 1`).readOnly).toBe(true)
 
-    fireEvent.click(screen.getByText(en.customMode))
+    fireEvent.click(screen.getByRole('button', { name: en.customMode }))
 
     expect(screen.getByText(en.mapping)).toBeTruthy()
     expect(screen.getByLabelText<HTMLInputElement>(`${en.value} high 1`).readOnly).toBe(false)
@@ -77,6 +77,8 @@ describe('ReasoningEffortSection', () => {
 
   it('keeps custom request dialects explicit and removes only owned compatibility fields on restore', () => {
     expect(requestField('openai-responses', 'openai')).toBe('reasoning.effort')
+    expect(requestField('azure-openai-responses', 'openai')).toBe('reasoning.effort')
+    expect(requestField('openai-codex-responses', 'openai')).toBe('reasoning.effort')
     expect(requestField('anthropic-messages', 'openai')).toBe('output_config.effort / thinking.budget_tokens')
     expect(withReasoning({
       id: 'm',
@@ -88,6 +90,34 @@ describe('ReasoningEffortSection', () => {
       id: 'm',
       compat: { futureFlag: 1 },
     })
+  })
+
+  it('offers rc8 thinking formats and preserves prompt-role inheritance as a tri-state switch', () => {
+    const onChange = mount({
+      id: 'reasoner',
+      reasoningEfforts: { high: 'high' },
+      compat: { thinkingFormat: 'qwen-chat-template', futureFlag: 1 },
+    })
+    fireEvent.click(screen.getByRole('button', { name: en.customMode }))
+
+    const format = screen.getByLabelText<HTMLSelectElement>(`${en.format} 1`)
+    expect([...format.options].map(option => option.value)).toContain('chat-template')
+    expect([...format.options].map(option => option.value)).toContain('qwen-chat-template')
+    expect(requestField('openai-completions', 'qwen-chat-template')).toBe('chat_template_kwargs')
+
+    fireEvent.change(screen.getByLabelText(`${en.promptRole} 1`), { target: { value: 'system' } })
+    expect(onChange).toHaveBeenLastCalledWith({
+      id: 'reasoner',
+      reasoningEfforts: { high: 'high' },
+      compat: { thinkingFormat: 'qwen-chat-template', futureFlag: 1, supportsDeveloperRole: false },
+    })
+    expect(withPromptRole({ id: 'm', compat: { futureFlag: 1, supportsDeveloperRole: true } }, 'automatic'))
+      .toEqual({ id: 'm', compat: { futureFlag: 1 } })
+  })
+
+  it('shows prompt-role selection only for protocols that expose the rc8 switch', () => {
+    mount({ id: 'reasoner' }, vi.fn(), 'anthropic-messages')
+    expect(screen.queryByLabelText(`${en.promptRole} 1`)).toBeNull()
   })
 
   it('preserves inherited-protocol compatibility fields while changing effort levels', () => {

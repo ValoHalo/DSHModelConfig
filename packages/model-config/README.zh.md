@@ -30,4 +30,4 @@ dsh plugin --profile web add dsh-model-config@0.2.0
 
 - 只显示显式声明的 pi-ai 模型，不把官方 catalog 具化进用户设置。
 - 自定义提供方获取模型时会补齐容量：优先保留接口返回值，再按模型 ID 使用固定 catalog 中无冲突的字段，最后回退到 `262144` 上下文窗口和 `32768` 最大输出；已有模型行不被重新获取覆盖。
-- 官方 rc.7 不接受 `compat.supportsDeveloperRole`，所以不提供系统提示词角色切换。
+- 仅在 rc8 接受 `compat.supportsDeveloperRole` 的 `openai-completions` 和三种 OpenAI Responses 协议中显示提示词角色选择。

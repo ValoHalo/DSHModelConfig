@@ -10,7 +10,7 @@ diff --git a/packages/client/ui-dsh-model-config/src/host-models/client/ModelLis
  import type { ReactNode } from 'react'
  import type { DiscoveredModelView, IApiClient } from '@deepseek-ai/dsh-api-remotes/client'
  import { Button, Modal } from '@deepseek-ai/dsh-client-ui-primitives'
-@@ -22,6 +22,8 @@ import { formatCapacity, parseCapacity } from './DeepSeekModelsEditor.tsx'
+@@ -20,6 +20,8 @@ import { formatCapacity, parseCapacity } from './DeepSeekModelsEditor.tsx'
  import type { DeepSeekModelDraft } from './DeepSeekModelsEditor.tsx'
  import { messageOf } from './store.ts'
  import type { en } from './locales.ts'
@@ -37,7 +37,8 @@ diff --git a/packages/client/ui-dsh-model-config/src/host-models/client/ModelLis
  }
  
  /**
-@@ -165,5 +167,21 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
+@@ -165,6 +167,22 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
+   const [failure, setFailure] = useState<string | undefined>(undefined)
    const [candidates, setCandidates] = useState<readonly DiscoveredModelView[] | undefined>(undefined)
    const [picked, setPicked] = useState<ReadonlySet<string>>(new Set())
 +  const renderModelCapability = useContext(ModelCapabilitySlotContext)
@@ -118,40 +119,48 @@ diff --git a/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSe
 diff --git a/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.tsx b/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.tsx
 --- a/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.tsx
 +++ b/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.tsx
-@@ -17,9 +17,11 @@ import type { ReactNode } from 'react'
+@@ -16,13 +16,14 @@ import { useState } from 'react'
+ import type { ReactNode } from 'react'
  import type { IApiClient } from '@deepseek-ai/dsh-api-remotes/client'
  import { Button, IconPlusOutline16, Modal } from '@deepseek-ai/dsh-client-ui-primitives'
- import type { SnapshotSelectorHook } from '@deepseek-ai/dsh-client-web-react'
-+import type { PropsRenderSlots } from '@deepseek-ai/dsh-client-ui-slots'
+-import type { InjectFace } from '@deepseek-ai/dsh-client-ui-slots'
++import type { InjectFace, PropsRenderSlots } from '@deepseek-ai/dsh-client-ui-slots'
  import { CustomProviderCard } from './CustomProviderCard.tsx'
  import { deriveKeyRef, messageOf, protocolChoices, providerUsable } from './store.ts'
- import type { ModelsSettingsState, ModelsSettingsStore, ProviderRow } from './store.ts'
+ import type { ModelsSettingsStore, ProviderRow } from './store.ts'
+ import type { SettingsSchemaOperations } from './schema-operations.ts'
  import { ProviderEditor, type ProviderEditorProps } from './ProviderEditor.tsx'
  import type { en } from './locales.ts'
 +import { MODEL_CAPABILITY_SLOT, ModelCapabilitySlotContext } from '../../client/model-capability-slot.ts'
  import styles from './ModelsSection.module.css'
-@@ -39,6 +41,8 @@
- /**
+-
++
+ /** Injected dependencies of {@link ModelsSection} (slot `inject`). */
+@@ -45,6 +46,7 @@ export interface ModelsSectionInjected {
   * Props delivered by the slot outlet: the inject face spread flat (the
   * renderer erases the share boundary at the render call).
   */
--export type ModelsSectionProps = Partial<ModelsSectionInjected>
-+export type ModelsSectionProps = Partial<ModelsSectionInjected> & {
-+  renderSlot?: unknown
-+}
- 
-@@ -171,5 +175,11 @@
+-export type ModelsSectionProps = Partial<InjectFace<ModelsSectionInjected>>
++export type ModelsSectionProps = Partial<
++  InjectFace<ModelsSectionInjected> & PropsRenderSlots<typeof MODEL_CAPABILITY_SLOT>
++>
+-
+ type ModelsSectionFace = InjectFace<ModelsSectionInjected>
+@@ -176,10 +178,14 @@ export function providerCopy(template: string, target: ProviderIdentity): string
+  * @returns the section, or null while the shell has not injected yet.
+  */
  export function ModelsSection(props: ModelsSectionProps): ReactNode {
--  const { controller, useSnapshot, api, t } = props
--  if (controller === undefined || useSnapshot === undefined || api === undefined || t === undefined) return null
--  return <Loaded injected={{ controller, useSnapshot, api, t }} />
-+  const { controller, useSnapshot, api, t } = props
-+  const renderSlot = props.renderSlot as PropsRenderSlots<typeof MODEL_CAPABILITY_SLOT>['renderSlot'] | undefined
-+  if (controller === undefined || useSnapshot === undefined || api === undefined || t === undefined
-+    || renderSlot === undefined) return null
+-  const { controller, useSnapshot, api, schema, t } = props
++  const { controller, useSnapshot, api, schema, t, renderSlot } = props
+   if (
+     controller === undefined || useSnapshot === undefined || api === undefined
+-    || schema === undefined || t === undefined
++    || schema === undefined || t === undefined || renderSlot === undefined
+   ) return null
+-  return <Loaded injected={{ controller, useSnapshot, api, schema, t }} />
 +  return (
 +    <ModelCapabilitySlotContext.Provider value={owner => renderSlot(MODEL_CAPABILITY_SLOT, owner)}>
-+      <Loaded injected={{ controller, useSnapshot, api, t }} />
++      <Loaded injected={{ controller, useSnapshot, api, schema, t }} />
 +    </ModelCapabilitySlotContext.Provider>
 +  )
  }

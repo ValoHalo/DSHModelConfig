@@ -10,8 +10,8 @@ This is an unofficial project with no affiliation with DeepSeek. DSH is preview 
 
 | Component | Supported range |
 | --- | --- |
-| DSH | `@deepseek-ai/dsh 0.1.0-rc.7` |
-| Harness source | `99f6f02fecdb7dff40c3fbc9470f5907c29f74ca` |
+| DSH | `@deepseek-ai/dsh 0.1.0-rc.8` |
+| Harness source | `141eb6fef83422698aef7a981029e843e8161534` |
 | Node.js | `^22.19.0 || >=24.0.0` |
 | Profile | `web` |
 | Stock DSH Web | Supported |
@@ -50,13 +50,11 @@ dsh plugin --profile web remove dsh-model-config
 
 ## Features
 
-- Reasoning effort: manual OpenAI, Anthropic, xAI, Kimi, GLM, and DeepSeek presets, custom effort maps, and thinking request formats.
+- Reasoning effort: manual OpenAI, Anthropic, xAI, Kimi, GLM, and DeepSeek presets, custom effort maps, every rc8 thinking request format, and inherited/Developer/System prompt-role selection on supported OpenAI protocols.
 - Model input: automatic, text-only, and text-and-image declarations.
 - Custom-provider model capacities: fetched models adopt consistent same-ID context-window and max-output values from the pinned DSH catalog; missing or ambiguous matches fall back to `262144` and `32768`, while existing manually edited rows remain unchanged.
 - Persistence: capability fields join the stock Models form draft and are saved by the same Apply action through the official settings mutation and namespace revision.
-- Stored fields: only stock `input`, `reasoningEfforts`, `compat.thinkingFormat`, and `compat.supportsReasoningEffort` fields.
-
-Stock rc.7 does not expose `compat.supportsDeveloperRole`, so the pure plugin does not offer Developer/System prompt-role selection.
+- Stored fields: only stock `input`, `reasoningEfforts`, `compat.thinkingFormat`, `compat.supportsReasoningEffort`, and `compat.supportsDeveloperRole` fields.
 
 ## Architecture
 

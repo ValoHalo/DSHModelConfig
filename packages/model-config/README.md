@@ -30,4 +30,4 @@ None; request changes come only from stock model configuration fields the user s
 
 - Only explicitly declared pi-ai models appear; the stock catalog is never materialized into user settings.
 - Fetched custom-provider models preserve capacities reported by the endpoint, then use unambiguous same-ID fields from the pinned catalog, and finally fall back to a `262144` context window and `32768` max output; fetching does not overwrite existing model rows.
-- Stock rc.7 rejects `compat.supportsDeveloperRole`, so prompt-role selection is unavailable.
+- Prompt-role selection is shown only for `openai-completions` and the three OpenAI Responses protocols that accept `compat.supportsDeveloperRole` in rc8.
