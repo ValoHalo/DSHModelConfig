@@ -41,10 +41,14 @@ jobs:
             echo "npm tarball unexpectedly contains package/src" >&2
             exit 1
           fi
+      - name: Read package version
+        id: package
+        shell: bash
+        run: echo "version=$(node -p \"require('./packages/model-config/package.json').version\")" >> "$GITHUB_OUTPUT"
       - name: Upload verification artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dsh-model-config-${{ github.sha }}
+          name: DSH-Model-Extensions-${{ steps.package.outputs.version }}
           path: |
             .build/tarballs/*.tgz
             release/*.zip
