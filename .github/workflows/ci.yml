@@ -47,12 +47,15 @@ jobs:
         run: |
           version=$(node -p "require('./packages/model-config/package.json').version")
           echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Stage verification artifacts
+        shell: bash
+        run: |
+          mkdir -p release/verification-artifacts
+          cp .build/tarballs/*.tgz release/*.zip release/verification-artifacts/
       - name: Upload verification artifacts
         uses: actions/upload-artifact@v4
         with:
           name: DSH-Model-Extensions-${{ steps.package.outputs.version }}
-          path: |
-            .build/tarballs/*.tgz
-            release/*.zip
+          path: release/verification-artifacts/*
           if-no-files-found: error
           retention-days: 7
