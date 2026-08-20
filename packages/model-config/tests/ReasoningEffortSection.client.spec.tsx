@@ -35,7 +35,7 @@ function mount(
 
 describe('ReasoningEffortSection', () => {
   it('shows preset levels read-only and makes mappings editable in custom mode', () => {
-    mount({ id: 'reasoner', reasoningEfforts: REASONING_PRESETS.openai.efforts })
+    mount({ id: 'reasoner', reasoningEfforts: REASONING_PRESETS.deepseek.efforts })
 
     const preset = screen.getByLabelText<HTMLSelectElement>(`${en.preset} 1`)
     expect([...preset.options].map(option => option.textContent)).toEqual([
