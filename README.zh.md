@@ -10,8 +10,8 @@
 
 | 项目 | 支持范围 |
 | --- | --- |
-| DSH | `@deepseek-ai/dsh 0.1.0-rc.8` |
-| Harness 源码 | `141eb6fef83422698aef7a981029e843e8161534` |
+| DSH | `@deepseek-ai/dsh 0.1.1-rc.2` |
+| Harness 源码 | `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e` |
 | Node.js | `^22.19.0 || >=24.0.0` |
 | Profile | `web` |
 | 官方 DSH Web | 支持 |
@@ -50,7 +50,7 @@ dsh plugin --profile web remove dsh-model-config
 
 ## 功能
 
-- 思考强度：OpenAI、Anthropic、xAI、Kimi、GLM、DeepSeek 手动预设、自定义档位映射、rc8 的全部思考请求格式，以及受支持 OpenAI 协议下的继承/Developer/System 提示词角色选择。
+- 思考强度：OpenAI、Anthropic、xAI、Kimi、GLM、DeepSeek 手动预设、自定义档位映射、rc2 的全部思考请求格式，以及受支持 OpenAI 协议下的继承/Developer/System 提示词角色选择。
 - 输入能力：自动、仅文本、文本与图片三种声明方式。
 - 自定义提供方模型容量：获取模型时按 ID 采用固定 DSH catalog 中一致的上下文窗口和最大输出；接口未提供且无法唯一匹配时使用 `262144` 和 `32768`，已存在模型行中的手动值保持不变。
 - 保存方式：能力字段进入官方 Models 表单的当前 draft，并由同一个“应用”操作通过官方 settings mutation 和 namespace revision 保存。

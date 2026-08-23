@@ -10,8 +10,8 @@ This is an unofficial project with no affiliation with DeepSeek. DSH is preview 
 
 | Component | Supported range |
 | --- | --- |
-| DSH | `@deepseek-ai/dsh 0.1.0-rc.8` |
-| Harness source | `141eb6fef83422698aef7a981029e843e8161534` |
+| DSH | `@deepseek-ai/dsh 0.1.1-rc.2` |
+| Harness source | `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e` |
 | Node.js | `^22.19.0 || >=24.0.0` |
 | Profile | `web` |
 | Stock DSH Web | Supported |
@@ -50,7 +50,7 @@ dsh plugin --profile web remove dsh-model-config
 
 ## Features
 
-- Reasoning effort: manual OpenAI, Anthropic, xAI, Kimi, GLM, and DeepSeek presets, custom effort maps, every rc8 thinking request format, and inherited/Developer/System prompt-role selection on supported OpenAI protocols.
+- Reasoning effort: manual OpenAI, Anthropic, xAI, Kimi, GLM, and DeepSeek presets, custom effort maps, every rc2 thinking request format, and inherited/Developer/System prompt-role selection on supported OpenAI protocols.
 - Model input: automatic, text-only, and text-and-image declarations.
 - Custom-provider model capacities: fetched models adopt consistent same-ID context-window and max-output values from the pinned DSH catalog; missing or ambiguous matches fall back to `262144` and `32768`, while existing manually edited rows remain unchanged.
 - Persistence: capability fields join the stock Models form draft and are saved by the same Apply action through the official settings mutation and namespace revision.

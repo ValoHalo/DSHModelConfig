@@ -81,7 +81,7 @@ export function apply(ctx: ClientContext): void {
     const refresh = (): void => { refreshIfLoaded(controller) }
     const disposers = [
       ctx.remote.$on('settings/document-updated', refresh),
-      ctx.remote.$on('credentials/updated', refresh),
+      ctx.remote.$on('credentials/reference-updated', refresh),
       ctx.remote.$on('llm/adapters-updated', refresh),
       ctx.on('connection/reset', refresh),
     ]

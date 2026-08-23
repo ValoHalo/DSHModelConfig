@@ -92,7 +92,7 @@ describe('ReasoningEffortSection', () => {
     })
   })
 
-  it('offers rc8 thinking formats and preserves prompt-role inheritance as a tri-state switch', () => {
+  it('offers rc2 thinking formats and preserves prompt-role inheritance as a tri-state switch', () => {
     const onChange = mount({
       id: 'reasoner',
       reasoningEfforts: { high: 'high' },
@@ -115,7 +115,7 @@ describe('ReasoningEffortSection', () => {
       .toEqual({ id: 'm', compat: { futureFlag: 1 } })
   })
 
-  it('shows prompt-role selection only for protocols that expose the rc8 switch', () => {
+  it('shows prompt-role selection only for protocols that expose the rc2 switch', () => {
     mount({ id: 'reasoner' }, vi.fn(), 'anthropic-messages')
     expect(screen.queryByLabelText(`${en.promptRole} 1`)).toBeNull()
   })
