@@ -13,7 +13,7 @@ type ReasoningEfforts = Partial<Record<ReasoningLevel, string | null>>
 type ReasoningMode = 'preset' | 'custom'
 type ReasoningPresetId = 'openai' | 'anthropic' | 'xai' | 'kimi' | 'glm' | 'deepseek'
 type PromptRoleMode = 'automatic' | 'developer' | 'system'
-type ThinkingFormat = 'openai' | 'deepseek' | 'openrouter' | 'together' | 'zai' | 'qwen'
+type ThinkingFormat = 'openai' | 'deepseek' | 'openrouter' | 'together' | 'baseten' | 'zai' | 'qwen'
 | 'chat-template' | 'qwen-chat-template' | 'string-thinking' | 'ant-ling'
 
 interface ReasoningPreset {
@@ -60,7 +60,7 @@ export const REASONING_PRESETS: Readonly<Record<ReasoningPresetId, ReasoningPres
 
 const REASONING_PRESET_IDS = Object.keys(REASONING_PRESETS) as ReasoningPresetId[]
 const THINKING_FORMATS: readonly ThinkingFormat[] = [
-  'openai', 'deepseek', 'openrouter', 'together', 'zai', 'qwen', 'chat-template',
+  'openai', 'deepseek', 'openrouter', 'together', 'baseten', 'zai', 'qwen', 'chat-template',
   'qwen-chat-template', 'string-thinking', 'ant-ling',
 ]
 
@@ -146,6 +146,7 @@ export function requestField(protocol: string | undefined, format: ThinkingForma
     case 'openrouter':
     case 'ant-ling': return 'reasoning.effort'
     case 'together': return 'reasoning.enabled + reasoning_effort'
+    case 'baseten': return 'chat_template_args'
     case 'qwen': return 'enable_thinking'
     case 'chat-template':
     case 'qwen-chat-template': return 'chat_template_kwargs'

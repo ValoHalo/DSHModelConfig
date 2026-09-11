@@ -1,52 +1,29 @@
-import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
-import type { ConnectionHandle } from '@deepseek-ai/dsh-api-remotes/client'
-import type {} from '@deepseek-ai/dsh-api-remotes/client'
+import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
-import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
+import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
+import { apply as applyModels, inject as modelsInject } from '../host-models/client/index.ts'
 import { ModelCapabilityFields } from './ModelCapabilityFields.tsx'
 import type { ModelCapabilityFieldsInjected } from './ModelCapabilityFields.tsx'
-import {
-  MODEL_CAPABILITY_SLOT,
-  type ModelCapabilityOwnerProps,
-} from './model-capability-slot.ts'
-import {
-  en as inputEn, zh as inputZh, type ModelInputKey,
-} from './model-input-locales.ts'
-import {
-  en as reasoningEn, zh as reasoningZh, type ReasoningEffortKey,
-} from './reasoning-effort-locales.ts'
-import { ModelsSection } from '../host-models/client/ModelsSection.tsx'
-import type { ModelsSectionInjected } from '../host-models/client/ModelsSection.tsx'
-import { ModelsSettingsStore } from '../host-models/client/store.ts'
-import { createSettingsSchemaOperations } from '../host-models/client/schema-operations.ts'
-import {
-  en as modelsEn, zh as modelsZh, type ModelsKey,
-} from '../host-models/client/locales.ts'
+import { MODEL_CAPABILITY_SLOT, type ModelCapabilityOwnerProps } from './model-capability-slot.ts'
+import { en as inputEn, zh as inputZh, type ModelInputKey } from './model-input-locales.ts'
+import { en as reasoningEn, zh as reasoningZh, type ReasoningEffortKey } from './reasoning-effort-locales.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
-    'dsh-model-config.models': ModelsKey
     'dsh-model-config.model-input': ModelInputKey
     'dsh-model-config.reasoning-effort': ReasoningEffortKey
   }
 }
 
-const MODELS_NS = 'dsh-model-config.models'
 const INPUT_NS = 'dsh-model-config.model-input'
 const REASONING_NS = 'dsh-model-config.reasoning-effort'
 
-/** Services used by the shadow Models page and its nested capability slot. */
-export const inject = ['slots', 'locale', 'connection', 'remote', 'settingsScope', 'settingsSchema']
+/** Services used by the Models page, onboarding, and capability controls. */
+export const inject = [...modelsInject]
 
-/** Refetch only after the integrated Models page has been opened once. */
-function refreshIfLoaded(controller: ModelsSettingsStore): void {
-  if (controller.store.getSnapshot().status === 'idle') return
-  void controller.load()
-}
-
-/** Replace the stock Models section with an installable slot-enabled copy. */
+/** Register the bundled Models page and its inline capability editors. */
 export function apply(ctx: ClientContext): void {
-  ctx.effect(() => ctx.locale.register(MODELS_NS, { zh: modelsZh, en: modelsEn }), 'dsh-model-config: models dictionaries')
+  applyModels(ctx)
   ctx.effect(() => ctx.locale.register(INPUT_NS, {
     zh: inputZh, en: inputEn,
   }), 'dsh-model-config: input dictionaries')
@@ -54,53 +31,7 @@ export function apply(ctx: ClientContext): void {
     zh: reasoningZh, en: reasoningEn,
   }), 'dsh-model-config: reasoning dictionaries')
 
-  ctx.effect(() => {
-    const rawEntries = ctx.slots.entries.bind(ctx.slots)
-    const projectedEntries: typeof ctx.slots.entries = key => key === 'settings.section'
-      ? ctx.slots.entriesOfSlot(key)
-      : rawEntries(key)
-    ctx.slots.entries = projectedEntries
-    return () => {
-      if (ctx.slots.entries === projectedEntries) ctx.slots.entries = rawEntries
-    }
-  }, 'dsh-model-config: project shadowed settings navigation')
-
-  const connection = ctx.get('connection') as ConnectionHandle
-  const schema = createSettingsSchemaOperations(ctx.settingsSchema)
-  const controller = new ModelsSettingsStore(connection.api, schema, ctx.settingsScope.describe())
-  const t = ctx.locale.bind(MODELS_NS) as ModelsSectionInjected['t']
-  const injected = (): ModelsSectionInjected => ({
-    controller,
-    hooks: { snapshot: controller.store },
-    api: connection.api,
-    schema,
-    t,
-  })
-
-  ctx.effect(() => {
-    const refresh = (): void => { refreshIfLoaded(controller) }
-    const disposers = [
-      ctx.remote.$on('settings/document-updated', refresh),
-      ctx.remote.$on('credentials/reference-updated', refresh),
-      ctx.remote.$on('llm/adapters-updated', refresh),
-      ctx.on('connection/reset', refresh),
-    ]
-    return () => { for (const dispose of disposers) dispose() }
-  }, 'dsh-model-config: models invalidations')
-
-  ctx.slots.inject('settings.section', () => ctx.slots.register({
-    name: 'settings.section',
-    id: 'models',
-    order: 10,
-    priority: -10,
-    label: () => t('nav'),
-    inject: injected,
-    children: {
-      [MODEL_CAPABILITY_SLOT]: { kind: 'list', scope: 'root' },
-    },
-  }, ModelsSection))
-
-  const capabilityInjected = (): ModelCapabilityFieldsInjected => ({
+  const injected = (): ModelCapabilityFieldsInjected => ({
     inputT: ctx.locale.bind(INPUT_NS),
     reasoningT: ctx.locale.bind(REASONING_NS),
   })
@@ -108,7 +39,7 @@ export function apply(ctx: ClientContext): void {
     name: MODEL_CAPABILITY_SLOT,
     id: 'dsh-model-config',
     order: 0,
-    inject: capabilityInjected,
+    inject: injected,
   }, ModelCapabilityFields))
 }
 

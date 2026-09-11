@@ -10,8 +10,8 @@ This is an unofficial project with no affiliation with DeepSeek. DSH is preview 
 
 | Component | Supported range |
 | --- | --- |
-| DSH | `@deepseek-ai/dsh 0.1.1-rc.2` |
-| Harness source | `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e` |
+| DSH | `@deepseek-ai/dsh 0.1.5-rc.2` |
+| Harness source | `c291e7961a515f6d7af9304e7fd1d257929aef26` |
 | Node.js | `^22.19.0 || >=24.0.0` |
 | Profile | `web` |
 | Stock DSH Web | Supported |
@@ -22,7 +22,7 @@ This is an unofficial project with no affiliation with DeepSeek. DSH is preview 
 After the package is published to npm, install through the official plugin command:
 
 ```powershell
-dsh plugin --profile web add dsh-model-config@0.2.0
+dsh plugin --profile web add dsh-model-config@0.3.0
 dsh web
 ```
 
@@ -50,7 +50,7 @@ dsh plugin --profile web remove dsh-model-config
 
 ## Features
 
-- Reasoning effort: manual OpenAI, Anthropic, xAI, Kimi, GLM, and DeepSeek presets, custom effort maps, every rc2 thinking request format, and inherited/Developer/System prompt-role selection on supported OpenAI protocols.
+- Reasoning effort: manual OpenAI, Anthropic, xAI, Kimi, GLM, and DeepSeek presets, custom effort maps, every 0.1.5-rc.2 thinking request format, and inherited/Developer/System prompt-role selection on supported OpenAI protocols.
 - Model input: automatic, text-only, and text-and-image declarations.
 - Custom-provider model capacities: fetched models adopt consistent same-ID context-window and max-output values from the pinned DSH catalog; missing or ambiguous matches fall back to `262144` and `32768`, while existing manually edited rows remain unchanged.
 - Persistence: capability fields join the stock Models form draft and are saved by the same Apply action through the official settings mutation and namespace revision.
@@ -58,7 +58,7 @@ dsh plugin --profile web remove dsh-model-config
 
 ## Architecture
 
-`dsh-model-config` is the only published package and user-facing install entry. Its build inlines the Models page from the pinned Harness commit and adds a model-row child slot. At runtime, the plugin registers that page in the existing `models` cell at a lower priority and contributes both editors through the child slot. Installation does not modify global DSH files; uninstalling exposes the stock Models entry again.
+`dsh-model-config` is the only published package and user-facing install entry. Its build inlines the Models page and onboarding dialogs from the pinned Harness commit and adds a model-row child slot. The bundle disables the stock `ui-settings-models` entry and loads this implementation with the same provider-card and footer extension slots. Installation does not modify global DSH files; removing the bundle restores the stock entry on the next launch.
 
 ## Development and release
 

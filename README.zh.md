@@ -10,8 +10,8 @@
 
 | 项目 | 支持范围 |
 | --- | --- |
-| DSH | `@deepseek-ai/dsh 0.1.1-rc.2` |
-| Harness 源码 | `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e` |
+| DSH | `@deepseek-ai/dsh 0.1.5-rc.2` |
+| Harness 源码 | `c291e7961a515f6d7af9304e7fd1d257929aef26` |
 | Node.js | `^22.19.0 || >=24.0.0` |
 | Profile | `web` |
 | 官方 DSH Web | 支持 |
@@ -22,7 +22,7 @@
 发布到 npm 后，使用官方插件命令安装：
 
 ```powershell
-dsh plugin --profile web add dsh-model-config@0.2.0
+dsh plugin --profile web add dsh-model-config@0.3.0
 dsh web
 ```
 
@@ -50,7 +50,7 @@ dsh plugin --profile web remove dsh-model-config
 
 ## 功能
 
-- 思考强度：OpenAI、Anthropic、xAI、Kimi、GLM、DeepSeek 手动预设、自定义档位映射、rc2 的全部思考请求格式，以及受支持 OpenAI 协议下的继承/Developer/System 提示词角色选择。
+- 思考强度：OpenAI、Anthropic、xAI、Kimi、GLM、DeepSeek 手动预设、自定义档位映射、0.1.5-rc.2 的全部思考请求格式，以及受支持 OpenAI 协议下的继承/Developer/System 提示词角色选择。
 - 输入能力：自动、仅文本、文本与图片三种声明方式。
 - 自定义提供方模型容量：获取模型时按 ID 采用固定 DSH catalog 中一致的上下文窗口和最大输出；接口未提供且无法唯一匹配时使用 `262144` 和 `32768`，已存在模型行中的手动值保持不变。
 - 保存方式：能力字段进入官方 Models 表单的当前 draft，并由同一个“应用”操作通过官方 settings mutation 和 namespace revision 保存。
@@ -58,7 +58,7 @@ dsh plugin --profile web remove dsh-model-config
 
 ## 架构
 
-`dsh-model-config` 是唯一的发布包和用户安装入口。构建时会从固定 Harness 提交内联 Models 页面源码，并加入模型行子 slot；运行时插件以较低 priority 接管同一个 `models` 设置项，通过子 slot 渲染两个编辑器。安装不会修改全局 DSH 文件，卸载插件后官方 Models 页面重新成为有效项。
+`dsh-model-config` 是唯一的发布包和用户安装入口。构建时会从固定 Harness 提交内联 Models 页面和引导对话框源码，并加入模型行子 slot。Bundle 停用官方 `ui-settings-models` 入口，加载本包提供的完整实现，同时保留提供方卡片和页脚扩展位置。安装不会修改全局 DSH 文件；移除 bundle 后，下次启动会恢复官方入口。
 
 ## 开发与发布
 

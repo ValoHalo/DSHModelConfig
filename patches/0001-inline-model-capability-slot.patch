@@ -8,11 +8,10 @@ diff --git a/packages/client/ui-dsh-model-config/src/host-models/client/ModelLis
 -import { useState } from 'react'
 +import { useContext, useRef, useState } from 'react'
  import type { ReactNode } from 'react'
- import type { DiscoveredModelView, IApiClient } from '@deepseek-ai/dsh-api-remotes/client'
+ import type { LlmDiscoveredModel } from '@deepseek-ai/dsh-api-remotes/client'
  import { Button, Modal } from '@deepseek-ai/dsh-client-ui-primitives'
-@@ -20,6 +20,8 @@ import { formatCapacity, parseCapacity } from './DeepSeekModelsEditor.tsx'
+@@ -20,5 +20,7 @@ import { formatCapacity, parseCapacity } from './DeepSeekModelsEditor.tsx'
  import type { DeepSeekModelDraft } from './DeepSeekModelsEditor.tsx'
- import { messageOf } from './store.ts'
  import type { en } from './locales.ts'
 +import { ModelCapabilitySlotContext } from '../../client/model-capability-slot.ts'
 +import { withModelCapacityDefaults } from '../../client/model-capacity-defaults.ts'
@@ -25,7 +24,7 @@ diff --git a/packages/client/ui-dsh-model-config/src/host-models/client/ModelLis
  
 -/** Adopt a candidate, keeping whatever capacities the provider disclosed. */
 +/** Adopt a candidate, filling capacities from same-id catalog data or route fallbacks. */
- function adopt(candidate: DiscoveredModelView): ModelDraft {
+ function adopt(candidate: LlmDiscoveredModel): ModelDraft {
 -  return {
 +  return withModelCapacityDefaults({
      id: candidate.id,
@@ -37,9 +36,9 @@ diff --git a/packages/client/ui-dsh-model-config/src/host-models/client/ModelLis
  }
  
  /**
-@@ -165,6 +167,22 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
+@@ -165,7 +167,23 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
    const [failure, setFailure] = useState<string | undefined>(undefined)
-   const [candidates, setCandidates] = useState<readonly DiscoveredModelView[] | undefined>(undefined)
+   const [candidates, setCandidates] = useState<readonly LlmDiscoveredModel[] | undefined>(undefined)
    const [picked, setPicked] = useState<ReadonlySet<string>>(new Set())
 +  const renderModelCapability = useContext(ModelCapabilitySlotContext)
 +  const rowKeys = useRef(new WeakMap<ModelDraft, number>())
@@ -57,6 +56,7 @@ diff --git a/packages/client/ui-dsh-model-config/src/host-models/client/ModelLis
 +    rowKeys.current.set(next, rowKey(previous))
 +    return next
 +  }
+   const [candidateQuery, setCandidateQuery] = useState('')
    // Rows carry an id and a name; capacities are the exception, so they stay
    // folded until asked for rather than crowding every row with four inputs.
    const [expanded, setExpanded] = useState<ReadonlySet<number>>(new Set())
@@ -104,30 +104,19 @@ diff --git a/packages/client/ui-dsh-model-config/src/host-models/client/ModelLis
 diff --git a/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.module.css b/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.module.css
 --- a/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.module.css
 +++ b/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.module.css
-@@ -506,6 +506,11 @@
-   padding: 8px 4px 2px;
- }
- 
+@@ -1,3 +1,8 @@
 +.modelCapabilities {
 +  grid-column: 1 / -1;
 +  min-width: 0;
 +}
 +
- .modelField {
-   display: flex;
-   flex-direction: column;
+ /* Every color resolves through a `--dsw-alias-*` token. Bare `--border` /
+  * `--surface` / `--text-*` names, which nothing in this app defines, would
+  * render the light-mode literals written as their fallbacks and stay light
 diff --git a/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.tsx b/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.tsx
 --- a/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.tsx
 +++ b/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSection.tsx
-@@ -16,13 +16,14 @@ import { useState } from 'react'
- import type { ReactNode } from 'react'
- import type { IApiClient } from '@deepseek-ai/dsh-api-remotes/client'
- import { Button, IconPlusOutline16, Modal } from '@deepseek-ai/dsh-client-ui-primitives'
--import type { InjectFace } from '@deepseek-ai/dsh-client-ui-slots'
-+import type { InjectFace, PropsRenderSlots } from '@deepseek-ai/dsh-client-ui-slots'
- import { CustomProviderCard } from './CustomProviderCard.tsx'
- import { deriveKeyRef, messageOf, protocolChoices, providerUsable } from './store.ts'
- import type { ModelsSettingsStore, ProviderRow } from './store.ts'
+@@ -25,6 +25,7 @@
  import type { SettingsSchemaOperations } from './schema-operations.ts'
  import { ProviderEditor, type ProviderEditorProps } from './ProviderEditor.tsx'
  import type { en } from './locales.ts'
@@ -136,31 +125,39 @@ diff --git a/packages/client/ui-dsh-model-config/src/host-models/client/ModelsSe
 -
 +
  /** Injected dependencies of {@link ModelsSection} (slot `inject`). */
-@@ -45,6 +46,7 @@ export interface ModelsSectionInjected {
-  * Props delivered by the slot outlet: the inject face spread flat (the
-  * renderer erases the share boundary at the render call).
-  */
--export type ModelsSectionProps = Partial<InjectFace<ModelsSectionInjected>>
-+export type ModelsSectionProps = Partial<
-+  InjectFace<ModelsSectionInjected> & PropsRenderSlots<typeof MODEL_CAPABILITY_SLOT>
-+>
+@@ -49,4 +50,4 @@
+ /** The child slots this section declares and dispatches (see ./slot-contract.ts). */
+-type ModelsChildSlots = 'settings.models.provider-card' | 'settings.models.footer'
++type ModelsChildSlots = 'settings.models.provider-card' | 'settings.models.footer' | typeof MODEL_CAPABILITY_SLOT
 -
- type ModelsSectionFace = InjectFace<ModelsSectionInjected>
-@@ -176,10 +178,14 @@ export function providerCopy(template: string, target: ProviderIdentity): string
-  * @returns the section, or null while the shell has not injected yet.
-  */
- export function ModelsSection(props: ModelsSectionProps): ReactNode {
--  const { controller, useSnapshot, api, schema, t } = props
-+  const { controller, useSnapshot, api, schema, t, renderSlot } = props
-   if (
-     controller === undefined || useSnapshot === undefined || api === undefined
--    || schema === undefined || t === undefined
-+    || schema === undefined || t === undefined || renderSlot === undefined
++
+ /** The child-slot dispatch function the renderer binds for the section. */
+@@ -211,6 +212,10 @@
+     || schema === undefined || t === undefined
    ) return null
--  return <Loaded injected={{ controller, useSnapshot, api, schema, t }} />
+-  return <Loaded injected={{ controller, useSnapshot, operations, schema, t }} renderSlot={renderSlot} />
 +  return (
 +    <ModelCapabilitySlotContext.Provider value={owner => renderSlot(MODEL_CAPABILITY_SLOT, owner)}>
-+      <Loaded injected={{ controller, useSnapshot, api, schema, t }} />
++      <Loaded injected={{ controller, useSnapshot, operations, schema, t }} renderSlot={renderSlot} />
 +    </ModelCapabilitySlotContext.Provider>
 +  )
  }
+-
++
+ function Loaded({ injected, renderSlot }: { injected: ModelsSectionFace; renderSlot: ModelsRenderSlot }): ReactNode {
+diff --git a/packages/client/ui-dsh-model-config/src/host-models/client/index.ts b/packages/client/ui-dsh-model-config/src/host-models/client/index.ts
+--- a/packages/client/ui-dsh-model-config/src/host-models/client/index.ts
++++ b/packages/client/ui-dsh-model-config/src/host-models/client/index.ts
+@@ -34,4 +34,5 @@
+ import { en, zh, type ModelsKey } from './locales.ts'
+ import { WELCOME_NOTICE_SETTINGS_NAMESPACE } from '../onboarding-copy.ts'
++import { MODEL_CAPABILITY_SLOT } from '../../client/model-capability-slot.ts'
+-
++
+ export type { ModelsSectionInjected, ModelsSectionProps } from './ModelsSection.tsx'
+@@ -146,4 +147,5 @@
+     children: {
+       'settings.models.provider-card': { kind: 'keyed', scope: 'root' },
+       'settings.models.footer': { kind: 'list', scope: 'root' },
++      [MODEL_CAPABILITY_SLOT]: { kind: 'list', scope: 'root' },
+     },

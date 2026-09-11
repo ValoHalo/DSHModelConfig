@@ -92,7 +92,7 @@ describe('ReasoningEffortSection', () => {
     })
   })
 
-  it('offers rc2 thinking formats and preserves prompt-role inheritance as a tri-state switch', () => {
+  it('offers current thinking formats and preserves prompt-role inheritance as a tri-state switch', () => {
     const onChange = mount({
       id: 'reasoner',
       reasoningEfforts: { high: 'high' },
@@ -103,6 +103,8 @@ describe('ReasoningEffortSection', () => {
     const format = screen.getByLabelText<HTMLSelectElement>(`${en.format} 1`)
     expect([...format.options].map(option => option.value)).toContain('chat-template')
     expect([...format.options].map(option => option.value)).toContain('qwen-chat-template')
+    expect([...format.options].map(option => option.value)).toContain('baseten')
+    expect(requestField('openai-completions', 'baseten')).toBe('chat_template_args')
     expect(requestField('openai-completions', 'qwen-chat-template')).toBe('chat_template_kwargs')
 
     fireEvent.change(screen.getByLabelText(`${en.promptRole} 1`), { target: { value: 'system' } })
@@ -115,7 +117,7 @@ describe('ReasoningEffortSection', () => {
       .toEqual({ id: 'm', compat: { futureFlag: 1 } })
   })
 
-  it('shows prompt-role selection only for protocols that expose the rc2 switch', () => {
+  it('shows prompt-role selection only for protocols that expose the switch', () => {
     mount({ id: 'reasoner' }, vi.fn(), 'anthropic-messages')
     expect(screen.queryByLabelText(`${en.promptRole} 1`)).toBeNull()
   })

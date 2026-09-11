@@ -31,7 +31,7 @@ The scripts fetch the pinned Harness source under `.build`, refresh the copied p
 
 ## Release Files
 
-The tag must match the root `package.json` version, for example `v0.2.0`. The Release workflow publishes one versioned ZIP and one stable filename used by the one-line installers.
+The tag must match the root `package.json` version, for example `v0.3.0`. The Release workflow publishes one versioned ZIP and one stable filename used by the one-line installers.
 
 When upgrading Harness, update `upstream/harness.json`, refresh `patches/0001-inline-model-capability-slot.patch`, and review the `llm-pi-ai` model fields, Settings slots, settings mutation API, and client bundle preset. The patch applies only to source in the build directory that is inlined into the plugin bundle; it does not modify the user's global DSH installation.
 
@@ -49,5 +49,5 @@ The following setup remains outside this repository:
 CI uploads the built tarball and ZIP as a seven-day workflow artifact. A manual first publication can publish the extracted tarball directly:
 
 ```bash
-npm publish .build/tarballs/dsh-model-config-0.2.0.tgz --access public
+npm publish .build/tarballs/dsh-model-config-0.3.0.tgz --access public
 ```

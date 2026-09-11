@@ -31,7 +31,7 @@ function Fixture() {
         models={models}
         onChange={setModels}
         probe={{ settingsNs: 'llm-test', provider: 'test', api: 'openai-completions' }}
-        api={{ llm: { discoverModels: vi.fn() } } as never}
+        operations={{ discoverModels: vi.fn() } as never}
         t={modelsT}
         disabled={false}
       />

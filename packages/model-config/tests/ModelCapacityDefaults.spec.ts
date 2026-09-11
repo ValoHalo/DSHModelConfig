@@ -10,7 +10,7 @@ describe('model capacity defaults', () => {
     })
   })
 
-  it('uses route fallbacks for unknown or conflicting ids', () => {
+  it('uses route fallbacks for unknown ids and current catalog values for known ids', () => {
     expect(withModelCapacityDefaults({ id: 'private-model' })).toEqual({
       id: 'private-model',
       contextWindow: 262_144,
@@ -18,7 +18,7 @@ describe('model capacity defaults', () => {
     })
     expect(withModelCapacityDefaults({ id: 'gpt-4.1' })).toEqual({
       id: 'gpt-4.1',
-      contextWindow: 262_144,
+      contextWindow: 1_047_576,
       maxTokens: 32_768,
     })
   })

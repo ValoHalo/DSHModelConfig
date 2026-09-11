@@ -7,9 +7,6 @@
   "include": [
     "src"
   ],
-  "exclude": [
-    "src/host-models/client/index.ts"
-  ],
   "references": [
     {
       "path": "../../../vendor/cordis"
@@ -24,7 +21,10 @@
       "path": "../locale"
     },
     {
-      "path": "../runtime"
+      "path": "../store"
+    },
+    {
+      "path": "../ui-renderer"
     },
     {
       "path": "../ui-primitives"

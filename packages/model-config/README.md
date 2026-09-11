@@ -4,7 +4,7 @@ English | [中文](README.zh.md)
 
 A single-package model-capability plugin for stock DSH Web. It takes over the existing `models` settings entry, declares a child slot inside each pi-ai model row, and contributes the input and reasoning editors through that slot.
 
-The package inlines the Models implementation from the pinned Harness commit without modifying global DSH files; uninstalling restores the stock Models page. Controls edit only models already present in the form, while providers that omit `models` and use the stock catalog remain untouched.
+The package inlines the Models implementation and onboarding dialogs from the pinned Harness commit. Its bundle disables the stock `ui-settings-models` entry to keep one owner for the provider-card and footer extension slots. Removing the bundle restores the stock page on the next launch without modifying global DSH files. Controls edit only models already present in the form, while providers that omit `models` and use the stock catalog remain untouched.
 
 The inlined DeepSeek Harness source retains its upstream license and copyright notice in `THIRD_PARTY_NOTICES.md`.
 
@@ -13,10 +13,10 @@ Capability edits share the stock form draft with the other model fields and are 
 ## Install
 
 ```powershell
-dsh plugin --profile web add dsh-model-config@0.2.0
+dsh plugin --profile web add dsh-model-config@0.3.0
 ```
 
-The shadow Models page and both editors are included in this package, with no separately published or installed feature dependencies.
+The Models page, onboarding dialogs, and both editors are included in this package, with no separately published or installed feature dependencies.
 
 ## Model Experience
 
@@ -30,4 +30,4 @@ None; request changes come only from stock model configuration fields the user s
 
 - Only explicitly declared pi-ai models appear; the stock catalog is never materialized into user settings.
 - Fetched custom-provider models preserve capacities reported by the endpoint, then use unambiguous same-ID fields from the pinned catalog, and finally fall back to a `262144` context window and `32768` max output; fetching does not overwrite existing model rows.
-- Prompt-role selection is shown only for `openai-completions` and the three OpenAI Responses protocols that accept `compat.supportsDeveloperRole` in rc2.
+- Prompt-role selection is shown only for `openai-completions` and the three OpenAI Responses protocols that accept `compat.supportsDeveloperRole` in 0.1.5-rc.2.

@@ -31,7 +31,7 @@ corepack pnpm run package:linux
 
 ## 发布文件
 
-标签必须与根 `package.json` 的版本一致，例如 `v0.2.0`。Release 工作流发布一个带版本 ZIP 和一个供一行安装脚本使用的稳定文件名。
+标签必须与根 `package.json` 的版本一致，例如 `v0.3.0`。Release 工作流发布一个带版本 ZIP 和一个供一行安装脚本使用的稳定文件名。
 
 升级 Harness 时，更新 `upstream/harness.json`，然后重新核对并更新 `patches/0001-inline-model-capability-slot.patch`，同时检查 `llm-pi-ai` 模型字段、Settings slot、settings mutation 和客户端 bundle preset。patch 只作用于构建目录中内联到插件 bundle 的源码，不修改用户安装的全局 DSH 文件。
 
@@ -49,5 +49,5 @@ corepack pnpm run package:linux
 CI 会把构建后的 tarball 和 ZIP 保存为保留七天的 workflow artifact。手动首次发布时，解压该 artifact 后直接发布 tarball：
 
 ```bash
-npm publish .build/tarballs/dsh-model-config-0.2.0.tgz --access public
+npm publish .build/tarballs/dsh-model-config-0.3.0.tgz --access public
 ```
